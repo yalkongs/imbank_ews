@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Layout } from './components';
 import {
   Dashboard,
@@ -24,6 +24,15 @@ import {
 } from './pages';
 
 export default function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type === 'reload' && window.location.pathname !== '/') {
+      navigate('/', { replace: true });
+    }
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

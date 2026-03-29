@@ -37,6 +37,8 @@ export const dashboardApi = {
   getSummary: () => api.get('/dashboard/summary'),
   getGradeTrend: () => api.get('/dashboard/grade-trend'),
   getEWSAlerts: () => api.get('/dashboard/ews-alerts'),
+  getIndustryBreakdown: () => api.get('/dashboard/industry-breakdown'),
+  getRegionBreakdown: () => api.get('/dashboard/region-breakdown'),
 };
 
 // EWS API

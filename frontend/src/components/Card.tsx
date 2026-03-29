@@ -37,10 +37,10 @@ export default function Card({
 interface StatCardProps {
   title: string;
   value: string | number;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   change?: number;
   icon?: React.ReactNode;
-  color?: 'blue' | 'green' | 'red' | 'yellow' | 'gray';
+  color?: 'blue' | 'green' | 'red' | 'yellow' | 'orange' | 'gray';
 }
 
 export function StatCard({ title, value, subtitle, change, icon, color = 'blue' }: StatCardProps) {
@@ -49,6 +49,7 @@ export function StatCard({ title, value, subtitle, change, icon, color = 'blue' 
     green: 'bg-green-50 text-green-600',
     red: 'bg-red-50 text-red-600',
     yellow: 'bg-yellow-50 text-yellow-600',
+    orange: 'bg-orange-50 text-orange-600',
     gray: 'bg-gray-50 text-gray-600',
   };
 
