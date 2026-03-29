@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, TrendingUp, ChevronDown, ChevronRight, Building2, Cog, Package, MapPin } from 'lucide-react';
 import { Card, TrendChart } from '../components';
 import Table from '../components/Table';
-import { companyApi, ewsApi, ewsAdvancedApi } from '../utils/api';
+import { companyApi, ewsApi, ewsAdvancedApi, searchApi } from '../utils/api';
 import { getEWSGradeBgClass, getEWSGradeColor, formatYm, getClassificationLabel, getStatusColorClass } from '../utils/format';
+
+const DROP_PAGE = 100;
 
 const TABS = ['EWS 신호', '여신 현황', '자산건전성', '담보 이력', 'ECL', '신용등급', '코베넌트', '거래행태', 'Workout 이력', '선행 신호'];
 
@@ -13,7 +15,13 @@ export default function CompanyBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchRegion, setSearchRegion] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchHasMore, setSearchHasMore] = useState(false);
+  const [searchLoadingMore, setSearchLoadingMore] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const dropOffsetRef = useRef(0);
+  const dropSentinelRef = useRef<HTMLDivElement | null>(null);
+  const dropListRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('id'));
   const [companyDetail, setCompanyDetail] = useState<any>(null);
   const [ewsHistory, setEwsHistory] = useState<any[]>([]);
@@ -48,15 +56,37 @@ export default function CompanyBrowser() {
     const r = region !== undefined ? region : searchRegion;
     setSearchQuery(q);
     setLoading(true);
+    dropOffsetRef.current = 0;
     try {
-      const res = await companyApi.search(q, r);
-      setSearchResults(res.data || []);
+      const res = await searchApi.searchCompany(q, r, DROP_PAGE, 0);
+      const data = res.data;
+      setSearchResults(data.results || []);
+      setSearchTotal(data.total ?? 0);
+      setSearchHasMore(data.has_more ?? false);
+      dropOffsetRef.current = (data.results || []).length;
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const loadMoreDrop = useCallback(async (q: string, region: string) => {
+    if (searchLoadingMore) return;
+    setSearchLoadingMore(true);
+    try {
+      const res = await searchApi.searchCompany(q, region, DROP_PAGE, dropOffsetRef.current);
+      const data = res.data;
+      const newItems = data.results || [];
+      setSearchResults(prev => [...prev, ...newItems]);
+      setSearchHasMore(data.has_more ?? false);
+      dropOffsetRef.current += newItems.length;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSearchLoadingMore(false);
+    }
+  }, [searchLoadingMore]);
 
   const handleRegionChange = (r: string) => {
     setSearchRegion(r);
@@ -128,6 +158,22 @@ export default function CompanyBrowser() {
       }
     }
   };
+
+  // 드롭다운 무한 스크롤 sentinel 감지
+  useEffect(() => {
+    const sentinel = dropSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && searchHasMore && !searchLoadingMore && !loading) {
+          loadMoreDrop(searchQuery, searchRegion);
+        }
+      },
+      { threshold: 0.1, root: dropListRef.current }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [searchHasMore, searchLoadingMore, loading, searchQuery, searchRegion, loadMoreDrop]);
 
   const profile = companyDetail?.profile;
   const facilities = companyDetail?.facilities || [];
@@ -201,27 +247,37 @@ export default function CompanyBrowser() {
         </div>
 
         {(searchFocused || searchResults.length > 0) && searchResults.length > 0 && (
-          <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
-            {searchResults.map((c) => (
-              <button
-                key={c.borrower_id}
-                onMouseDown={() => {
-                  setSelectedId(c.borrower_id);
-                  setSearchResults([]);
-                  setSearchQuery('');
-                  setSearchFocused(false);
-                }}
-                className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-blue-50 border-b border-gray-100 last:border-0 ${
-                  selectedId === c.borrower_id ? 'bg-blue-50' : ''
-                }`}
-              >
-                <span className="font-medium">{c.company_name}</span>
-                <span className="text-gray-400 text-xs flex items-center gap-2">
-                  {c.region && <span className="flex items-center gap-0.5 text-blue-500"><MapPin size={10}/>{c.region}</span>}
-                  {c.firm_size_cd} | {c.industry_cd}
-                </span>
-              </button>
-            ))}
+          <div className="mt-2 border border-gray-200 rounded-lg overflow-hidden">
+            <div className="px-3 py-1.5 bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+              총 <span className="font-semibold text-gray-700">{searchTotal.toLocaleString()}</span>개 중 {searchResults.length.toLocaleString()}개 표시
+            </div>
+            <div ref={dropListRef} className="max-h-72 overflow-y-auto">
+              {searchResults.map((c) => (
+                <button
+                  key={c.borrower_id}
+                  onMouseDown={() => {
+                    setSelectedId(c.borrower_id);
+                    setSearchResults([]);
+                    setSearchQuery('');
+                    setSearchFocused(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-blue-50 border-b border-gray-100 last:border-0 ${
+                    selectedId === c.borrower_id ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <span className="font-medium">{c.company_name}</span>
+                  <span className="text-gray-400 text-xs flex items-center gap-2">
+                    {c.region && <span className="flex items-center gap-0.5 text-blue-500"><MapPin size={10}/>{c.region}</span>}
+                    {c.firm_size_cd} | {c.industry_cd}
+                  </span>
+                </button>
+              ))}
+              {searchHasMore && (
+                <div ref={dropSentinelRef} className="py-2 text-center text-xs text-gray-400">
+                  {searchLoadingMore ? '불러오는 중...' : '스크롤하여 더 보기'}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Card>
