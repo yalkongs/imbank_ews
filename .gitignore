@@ -1,0 +1,50 @@
+# 데이터베이스 파일 (생성 코드만 포함, DB 파일 제외)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ML 모델 바이너리 (pkl)
+*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node.js
+node_modules/
+frontend/dist/
+
+# 빌드 캐시
+data_pipeline/cache/*.pkl
+data_pipeline/cache/.checksums.json
+
+# 환경 변수
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# 로그
+*.log
+nohup.out
+/tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
