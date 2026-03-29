@@ -1,0 +1,31 @@
+# 백엔드 (Railway에서 실행)
+backend/
+data_pipeline/
+demo/
+ml/
+
+# DB / 모델
+*.db
+*.db-shm
+*.db-wal
+*.pkl
+
+# 빌드 캐시
+frontend/node_modules/
+frontend/dist/
+node_modules/
+__pycache__/
+*.pyc
+
+# 기타
+.git/
+.DS_Store
+*.log
+nohup.out
+CLAUDE.md
+railway.toml
+Dockerfile
+entrypoint.sh
+.dockerignore
+run_demo.sh
+start.sh
