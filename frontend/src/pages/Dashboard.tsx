@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Building2, TrendingUp, TrendingDown, Shield, DollarSign, ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
+import { AlertTriangle, Building2, TrendingUp, TrendingDown, Shield, DollarSign, ArrowDownRight } from 'lucide-react';
 import { Card, StatCard, GaugeCard, TrendChart, DonutChart, GroupedBarChart, COLORS } from '../components';
 import Table from '../components/Table';
 import { dashboardApi } from '../utils/api';
-import { formatEok, formatPercent, getEWSGradeBgClass, getEWSGradeColor, formatYm } from '../utils/format';
+import { formatPercent, getEWSGradeBgClass, getEWSGradeColor, formatYm } from '../utils/format';
 
-function DeltaBadge({ value, suffix = '', inverse = false }: { value: number; suffix?: string; inverse?: boolean }) {
-  if (value === 0) return <span className="text-xs text-gray-400 flex items-center gap-0.5"><Minus size={12} />전월 동일</span>;
-  const positive = inverse ? value < 0 : value > 0;
-  return (
-    <span className={`text-xs flex items-center gap-0.5 ${positive ? 'text-green-600' : 'text-red-500'}`}>
-      {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-      {Math.abs(value).toLocaleString()}{suffix} 전월 대비
-    </span>
-  );
+function deltaTxt(cur: number, prev: number): string {
+  const diff = cur - prev;
+  if (diff === 0) return '전월 동일';
+  return diff > 0 ? `전월 대비 +${diff}` : `전월 대비 ${diff}`;
 }
 
 export default function Dashboard() {
@@ -43,7 +38,6 @@ export default function Dashboard() {
 
       const [summaryR, trendR, alertsR, industryR, regionR] = results;
 
-      // 503이면 초기화 중 처리
       const is503 = results.some(
         r => r.status === 'rejected' && (r.reason as any)?.response?.status === 503
       );
@@ -99,26 +93,16 @@ export default function Dashboard() {
   const eclDelta = parseFloat((avgEclRate - prevEclRate).toFixed(2));
 
   const gradeDonutData = [
-    { name: 'A등급 (정상)', value: gradeCounts.A, color: getEWSGradeColor('A') },
-    { name: 'B등급 (주의)', value: gradeCounts.B, color: getEWSGradeColor('B') },
-    { name: 'C등급 (경고)', value: gradeCounts.C, color: getEWSGradeColor('C') },
-    { name: 'D등급 (위험)', value: gradeCounts.D, color: getEWSGradeColor('D') },
+    { name: 'A등급 (정상)', value: gradeCounts.A as number, color: getEWSGradeColor('A') },
+    { name: 'B등급 (주의)', value: gradeCounts.B as number, color: getEWSGradeColor('B') },
+    { name: 'C등급 (경고)', value: gradeCounts.C as number, color: getEWSGradeColor('C') },
+    { name: 'D등급 (위험)', value: gradeCounts.D as number, color: getEWSGradeColor('D') },
   ].filter(d => d.value > 0);
 
-  // 업종별 경보율 상위 8개
-  const industryChartData = industryBreakdown.slice(0, 8).map(d => ({
-    name: d.name,
-    경보기업: d.alert_count,
-    정상기업: d.total - d.alert_count,
-  }));
-
-  // 지역별 현황
-  const regionChartData = regionBreakdown.map(d => ({
-    name: d.region,
-    'D등급': d.D,
-    'C등급': d.C,
-    'B등급': d.B,
-    'A등급': d.A,
+  const industryChartData = industryBreakdown.slice(0, 8).map((d: any) => ({
+    name: d.name || d.industry_cd,
+    경보기업: d.alert_count || 0,
+    정상기업: (d.total || 0) - (d.alert_count || 0),
   }));
 
   const alertColumns = [
@@ -139,7 +123,7 @@ export default function Dashboard() {
     { key: 'region', header: '지역', width: '80px', align: 'center' as const },
     {
       key: 'exposure_억', header: '여신(억)', width: '80px', align: 'right' as const,
-      render: (v: number) => <span className="font-mono text-xs">{v.toLocaleString()}</span>
+      render: (v: number) => <span className="font-mono text-xs">{(v || 0).toLocaleString()}</span>
     },
   ];
 
@@ -169,36 +153,21 @@ export default function Dashboard() {
         <StatCard
           title="D등급 (위험)"
           value={gradeCounts.D.toLocaleString()}
-          subtitle={
-            <span className="flex flex-col gap-0.5">
-              <span>전체의 {totalCompanies > 0 ? ((gradeCounts.D / totalCompanies) * 100).toFixed(1) : 0}%</span>
-              <DeltaBadge value={gradeCounts.D - prevGradeCounts.D} inverse={false} />
-            </span>
-          }
+          subtitle={`전체의 ${totalCompanies > 0 ? ((gradeCounts.D / totalCompanies) * 100).toFixed(1) : 0}% · ${deltaTxt(gradeCounts.D, prevGradeCounts.D)}`}
           icon={<AlertTriangle size={20} />}
           color="red"
         />
         <StatCard
           title="C등급 (경고)"
           value={gradeCounts.C.toLocaleString()}
-          subtitle={
-            <span className="flex flex-col gap-0.5">
-              <span>전체의 {totalCompanies > 0 ? ((gradeCounts.C / totalCompanies) * 100).toFixed(1) : 0}%</span>
-              <DeltaBadge value={gradeCounts.C - prevGradeCounts.C} inverse={false} />
-            </span>
-          }
+          subtitle={`전체의 ${totalCompanies > 0 ? ((gradeCounts.C / totalCompanies) * 100).toFixed(1) : 0}% · ${deltaTxt(gradeCounts.C, prevGradeCounts.C)}`}
           icon={<AlertTriangle size={20} />}
           color="yellow"
         />
         <StatCard
           title="평균 ECL 비율"
           value={formatPercent(avgEclRate)}
-          subtitle={
-            <span className="flex flex-col gap-0.5">
-              <span>최신 기준월 기준</span>
-              <DeltaBadge value={eclDelta} suffix="%" inverse={false} />
-            </span>
-          }
+          subtitle={`최신 기준월 기준 · ${eclDelta >= 0 ? '+' : ''}${eclDelta}%p 전월 대비`}
           icon={<TrendingUp size={20} />}
           color="gray"
         />
@@ -209,14 +178,14 @@ export default function Dashboard() {
         <StatCard
           title="신규 경보 기업"
           value={newAlertCount.toLocaleString()}
-          subtitle="전월 정상→이번달 C/D"
+          subtitle="전월 정상 → 이번달 C/D"
           icon={<ArrowDownRight size={20} />}
           color="red"
         />
         <StatCard
           title="등급 하락 기업"
           value={gradeDownCount.toLocaleString()}
-          subtitle="전월 A/B→이번달 C/D"
+          subtitle="전월 A/B → 이번달 C/D"
           icon={<TrendingDown size={20} />}
           color="orange"
         />
@@ -249,12 +218,18 @@ export default function Dashboard() {
         />
 
         <Card title="EWS 등급 분포" className="lg:col-span-2">
-          <DonutChart
-            data={gradeDonutData}
-            height={220}
-            centerText="EWS 등급"
-            centerValue={totalCompanies.toString()}
-          />
+          {gradeDonutData.length > 0 ? (
+            <DonutChart
+              data={gradeDonutData}
+              height={220}
+              centerText="EWS 등급"
+              centerValue={totalCompanies.toString()}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-[220px] text-gray-400 text-sm">
+              데이터 로딩 중...
+            </div>
+          )}
         </Card>
       </div>
 
@@ -276,54 +251,70 @@ export default function Dashboard() {
       {/* 업종별 경보 현황 + 지역별 현황 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card title="업종별 경보 현황" subtitle="경보율 상위 8개 업종">
-          <GroupedBarChart
-            data={industryChartData}
-            xAxisKey="name"
-            bars={[
-              { key: '경보기업', name: '경보(C/D)', color: '#ef4444' },
-              { key: '정상기업', name: '정상(A/B)', color: '#93c5fd' },
-            ]}
-            height={260}
-          />
+          {industryChartData.length > 0 ? (
+            <GroupedBarChart
+              data={industryChartData}
+              xAxisKey="name"
+              bars={[
+                { key: '경보기업', name: '경보(C/D)', color: '#ef4444' },
+                { key: '정상기업', name: '정상(A/B)', color: '#93c5fd' },
+              ]}
+              height={260}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-[260px] text-gray-400 text-sm">
+              데이터 로딩 중...
+            </div>
+          )}
         </Card>
 
         <Card title="지역별 EWS 현황">
-          <div className="space-y-3 mt-2">
-            {regionBreakdown.map(r => {
-              const alertRateNum = r.alert_rate as number;
-              return (
-                <div key={r.region} className="flex items-center gap-3">
-                  <div className="w-20 text-sm font-medium text-gray-700 shrink-0">{r.region}</div>
-                  <div className="flex-1">
-                    <div className="flex gap-0.5 h-5 rounded overflow-hidden">
-                      {(['A', 'B', 'C', 'D'] as const).map(g => {
-                        const pct = r.total > 0 ? (r[g] / r.total) * 100 : 0;
-                        return pct > 0 ? (
-                          <div
-                            key={g}
-                            title={`${g}등급: ${r[g]}개 (${pct.toFixed(1)}%)`}
-                            style={{ width: `${pct}%`, backgroundColor: getEWSGradeColor(g) }}
-                          />
-                        ) : null;
-                      })}
+          {regionBreakdown.length > 0 ? (
+            <>
+              <div className="space-y-3 mt-2">
+                {regionBreakdown.map((r: any) => {
+                  const alertRateNum = Number(r.alert_rate) || 0;
+                  const total = Number(r.total) || 0;
+                  return (
+                    <div key={r.region} className="flex items-center gap-3">
+                      <div className="w-20 text-sm font-medium text-gray-700 shrink-0">{r.region}</div>
+                      <div className="flex-1">
+                        <div className="flex gap-0.5 h-5 rounded overflow-hidden bg-gray-100">
+                          {(['A', 'B', 'C', 'D'] as const).map(g => {
+                            const cnt = Number(r[g]) || 0;
+                            const pct = total > 0 ? (cnt / total) * 100 : 0;
+                            return pct > 0 ? (
+                              <div
+                                key={g}
+                                title={`${g}등급: ${cnt}개 (${pct.toFixed(1)}%)`}
+                                style={{ width: `${pct}%`, backgroundColor: getEWSGradeColor(g) }}
+                              />
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                      <div className="w-28 text-right text-xs text-gray-500 shrink-0">
+                        <span className="text-red-500 font-semibold">{alertRateNum.toFixed(1)}%</span>
+                        &nbsp;경보&nbsp;|&nbsp;{total.toLocaleString()}개
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-28 text-right text-xs text-gray-500 shrink-0">
-                    <span className="text-red-500 font-semibold">{alertRateNum.toFixed(1)}%</span>
-                    &nbsp;경보&nbsp;|&nbsp;{r.total.toLocaleString()}개
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex gap-4 mt-4 pt-3 border-t">
-            {['A', 'B', 'C', 'D'].map(g => (
-              <div key={g} className="flex items-center gap-1.5 text-xs text-gray-500">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getEWSGradeColor(g) }} />
-                {g}등급
+                  );
+                })}
               </div>
-            ))}
-          </div>
+              <div className="flex gap-4 mt-4 pt-3 border-t">
+                {(['A', 'B', 'C', 'D'] as const).map(g => (
+                  <div key={g} className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getEWSGradeColor(g) }} />
+                    {g}등급
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-[240px] text-gray-400 text-sm">
+              데이터 로딩 중...
+            </div>
+          )}
         </Card>
       </div>
 
