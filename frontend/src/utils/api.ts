@@ -23,7 +23,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
+    if (error.response?.status === 503) {
+      console.warn('DB 초기화 중 (503):', error.response.data?.detail);
+    } else {
+      console.error('API Error:', error);
+    }
     return Promise.reject(error);
   }
 );

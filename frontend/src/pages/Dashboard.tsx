@@ -9,6 +9,7 @@ import { formatEok, formatPercent, getEWSGradeBgClass, getEWSGradeColor, formatY
 export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [initializing, setInitializing] = useState(false);
   const [summary, setSummary] = useState<any>(null);
   const [gradeTrend, setGradeTrend] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -27,8 +28,14 @@ export default function Dashboard() {
       setSummary(summaryRes.data);
       setGradeTrend(trendRes.data || []);
       setAlerts(alertsRes.data || []);
-    } catch (error) {
-      console.error('Dashboard data load error:', error);
+      setInitializing(false);
+    } catch (error: any) {
+      if (error.response?.status === 503) {
+        setInitializing(true);
+        setTimeout(loadData, 5000);
+      } else {
+        console.error('Dashboard data load error:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -38,6 +45,16 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (initializing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="text-gray-600 font-medium">데이터베이스 초기화 중입니다...</p>
+        <p className="text-gray-400 text-sm">최초 실행 시 약 1~2분 소요됩니다. 자동으로 새로고침됩니다.</p>
       </div>
     );
   }

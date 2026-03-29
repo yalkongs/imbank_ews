@@ -2,10 +2,12 @@
 iM뱅크 EWS 데모 시스템 - FastAPI 메인 애플리케이션
 """
 import os
-from fastapi import FastAPI
+import sqlite3
+from pathlib import Path
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from contextlib import asynccontextmanager
 
 from .core.database import engine, Base
@@ -44,6 +46,22 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+_DB_PATH = Path(__file__).parent.parent.parent / "demo" / "demo.db"
+
+
+def _db_ready() -> bool:
+    """demo.db가 존재하고 핵심 테이블이 있는지 확인"""
+    if not _DB_PATH.exists():
+        return False
+    try:
+        conn = sqlite3.connect(str(_DB_PATH))
+        conn.execute("SELECT 1 FROM demo_company LIMIT 1")
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
@@ -52,6 +70,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def db_ready_guard(request: Request, call_next):
+    """/api/* 요청에 대해 DB 미준비 시 503 반환 (/health는 항상 통과)"""
+    path = request.url.path
+    if path.startswith("/api/") and not _db_ready():
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "데이터베이스 초기화 중입니다. 잠시 후 다시 시도해 주세요."}
+        )
+    return await call_next(request)
 
 # API 라우터 등록
 app.include_router(dashboard.router)

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# 검증용 DB가 없으면 생성 (최초 실행 또는 볼륨 미연결 시)
+# 검증용 DB가 없으면 백그라운드에서 생성 (서버는 즉시 시작)
 if [ ! -f "/app/demo/demo.db" ]; then
-    echo "=== 검증용 DB 생성 중... (약 60초 소요) ==="
-    python3 /app/demo/generate_dataset.py
-    echo "=== DB 생성 완료 ==="
+    echo "=== 검증용 DB 백그라운드 생성 시작 (약 60~120초 소요) ==="
+    python3 /app/demo/generate_dataset.py &
+    echo "=== DB 준비 전까지 API는 503 반환됩니다 ==="
 fi
 
 # PORT 환경변수 (Railway가 자동 주입, 기본값 8000)
