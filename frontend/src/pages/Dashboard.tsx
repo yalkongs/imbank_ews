@@ -33,26 +33,35 @@ export default function Dashboard() {
 
   const loadData = async () => {
     try {
-      const [summaryRes, trendRes, alertsRes, industryRes, regionRes] = await Promise.all([
+      const results = await Promise.allSettled([
         dashboardApi.getSummary(),
         dashboardApi.getGradeTrend(),
         dashboardApi.getEWSAlerts(),
         dashboardApi.getIndustryBreakdown(),
         dashboardApi.getRegionBreakdown(),
       ]);
-      setSummary(summaryRes.data);
-      setGradeTrend(trendRes.data || []);
-      setAlerts(alertsRes.data || []);
-      setIndustryBreakdown(industryRes.data || []);
-      setRegionBreakdown(regionRes.data || []);
-      setInitializing(false);
-    } catch (error: any) {
-      if (error.response?.status === 503) {
+
+      const [summaryR, trendR, alertsR, industryR, regionR] = results;
+
+      // 503이면 초기화 중 처리
+      const is503 = results.some(
+        r => r.status === 'rejected' && (r.reason as any)?.response?.status === 503
+      );
+      if (is503) {
         setInitializing(true);
         setTimeout(loadData, 5000);
-      } else {
-        console.error('Dashboard data load error:', error);
+        return;
       }
+
+      if (summaryR.status === 'fulfilled') setSummary(summaryR.value.data);
+      if (trendR.status === 'fulfilled') setGradeTrend(trendR.value.data || []);
+      if (alertsR.status === 'fulfilled') setAlerts(alertsR.value.data || []);
+      if (industryR.status === 'fulfilled') setIndustryBreakdown(industryR.value.data || []);
+      if (regionR.status === 'fulfilled') setRegionBreakdown(regionR.value.data || []);
+
+      setInitializing(false);
+    } catch (error) {
+      console.error('Dashboard data load error:', error);
     } finally {
       setLoading(false);
     }
