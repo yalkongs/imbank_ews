@@ -1,0 +1,24 @@
+# DB 파일 제외 (컨테이너 내부에서 생성)
+*.db
+*.db-shm
+*.db-wal
+
+# ML 모델 바이너리
+*.pkl
+
+# 빌드 캐시
+data_pipeline/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 프론트엔드 빌드 결과물 (Dockerfile 내에서 빌드)
+frontend/node_modules/
+frontend/dist/
+
+# 기타
+.git/
+.gitignore
+.DS_Store
+*.log
+nohup.out
