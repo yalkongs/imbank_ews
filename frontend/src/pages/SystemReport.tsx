@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { Download, ChevronDown, ChevronRight } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
    공통 스타일 상수
@@ -104,93 +104,24 @@ function Badge({ label, color }: { label: string; color: string }) {
    메인 보고서 컴포넌트
 ═══════════════════════════════════════════════════════════ */
 export default function SystemReport() {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const handlePrint = () => {
-    const printArea = document.getElementById('report-print-area');
-    if (!printArea) return;
-    const styles = Array.from(document.styleSheets)
-      .map(sheet => {
-        try { return Array.from(sheet.cssRules).map(r => r.cssText).join('\n'); }
-        catch { return ''; }
-      })
-      .join('\n');
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (!printWindow) return;
-    printWindow.document.write(
-      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
-      `<title>iM뱅크 EWS 종합 보고서</title>` +
-      `<style>${styles}` +
-      `body{background:white;padding:24px;font-size:11pt;}` +
-      `h2{page-break-after:avoid;}` +
-      `table{page-break-inside:avoid;}` +
-      `</style></head><body>${printArea.innerHTML}</body></html>`
-    );
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => { printWindow.print(); }, 500);
-  };
-
   return (
-    <>
+    <div className="max-w-5xl mx-auto px-8 py-6 pb-16">
 
-      {/* ── 진입 화면 ── */}
-      <div className="flex flex-col items-center justify-center py-24 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">iM뱅크 기업여신 EWS</h1>
-          <p className="text-xl text-blue-700 font-semibold mb-1">시스템 종합 보고서</p>
-          <p className="text-sm text-gray-500">기준일: 2026년 3월 &nbsp;|&nbsp; 개발: 황원철</p>
-        </div>
-        <div className="grid grid-cols-3 gap-4 mb-10 text-center">
-          {[
-            { label: '모니터링 기업', value: '20,000개' },
-            { label: '데이터 기간', value: '36개월' },
-            { label: '구현 페이지', value: '18개' },
-          ].map(s => (
-            <div key={s.label} className="bg-blue-50 border border-blue-100 rounded-xl px-8 py-4">
-              <p className="text-2xl font-bold text-blue-700">{s.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm shadow-md"
+      {/* PDF 다운로드 버튼 */}
+      <div className="flex justify-end mb-4">
+        <a
+          href="/ews-report.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          download="iM뱅크_EWS_종합보고서.pdf"
+          className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
         >
-          <Printer size={18} />
-          보고서 열기 / PDF 저장
-        </button>
-        <p className="text-xs text-gray-400 mt-3">보고서를 열면 전체 내용 열람 및 PDF 저장이 가능합니다</p>
+          <Download size={14} />
+          PDF 보기 / 다운로드
+        </a>
       </div>
 
-      {/* ── 모달 ── */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center overflow-y-auto py-6 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl my-4 relative">
-            {/* 모달 상단 고정 헤더 */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between rounded-t-2xl z-10">
-              <span className="font-semibold text-gray-800 text-sm">iM뱅크 EWS 종합 보고서</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
-                >
-                  <Printer size={14} />
-                  PDF로 저장
-                </button>
-                <button
-                  onClick={() => setModalOpen(false)}
-                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-            {/* 보고서 내용 */}
-            <div id="report-print-area" className="px-8 py-6">
-      <div className="max-w-5xl mx-auto pb-16">
-
-        {/* ── 헤더 (모달/인쇄 공용) ── */}
+        {/* ── 헤더 ── */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">iM뱅크 기업여신 EWS 시스템 종합 보고서</h1>
           <p className="text-sm text-gray-500">기준일: 2026년 3월 &nbsp;|&nbsp; 개발: 황원철</p>
@@ -1320,11 +1251,6 @@ export default function SystemReport() {
           <p className="text-gray-400">개발: 황원철 (Hwang Weoncheol) — 설계·구현·데이터 생성 파이프라인·ML 모델링·프론트엔드·백엔드 전 영역</p>
         </div>
 
-      </div>
-            </div>{/* /report-print-area */}
-          </div>{/* /모달 컨테이너 */}
-        </div>
-      )}{/* /modalOpen */}
-    </>
+    </div>
   );
 }
