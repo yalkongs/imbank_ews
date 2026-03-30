@@ -429,6 +429,18 @@ export default function SystemReport() {
             ))}
           </div>
 
+          <div className="flex items-center gap-2 mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <span className="text-sm text-green-800 font-semibold">학습 데이터 다운로드:</span>
+            <a
+              href="https://drive.google.com/file/d/15EF1g8KpkN9z7ff6wDGfUT01J1T5TuiY/view?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 underline hover:text-blue-800 break-all"
+            >
+              ews_corporate_v24.db (Google Drive, ~12 GB)
+            </a>
+          </div>
+
           <h4 className={H4}>Tier별 학습 데이터 규모 (ml_feature_label 실측)</h4>
           <ReportTable
             headers={['Tier', '기업 규모', '행 수', '부도율', '비고']}
