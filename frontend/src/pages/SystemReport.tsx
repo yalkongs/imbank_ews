@@ -407,7 +407,7 @@ export default function SystemReport() {
 
         <p className={P}>
           EWS 모델은 두 가지 데이터베이스를 기반으로 합니다.
-          <strong> 학습용 DB(ews_corporate_v18.db)</strong>는 60,000개 기업 × 108개월(2017-01~2025-12)의
+          <strong> 학습용 DB(ews_corporate_v24.db)</strong>는 60,000개 기업 × 108개월(2017-01~2025-12)의
           대규모 합성 데이터로 모델을 훈련하는 데 사용됩니다.
           <strong> 검증용 DB(demo.db)</strong>는 20,000개 기업 × 36개월(2023-01~2025-12)로 구성된
           iM뱅크 특화 운영 시뮬레이션 데이터입니다.
