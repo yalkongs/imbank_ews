@@ -1,0 +1,87 @@
+{
+  "t1": {
+    "tier": "T1",
+    "tier_label": "T1 — 대기업",
+    "firm_size": [
+      "대기업"
+    ],
+    "description": "대기업 전용 EWS 모델. 공시 재무데이터·채권시장 신호·공급망 분석 등 고품질 데이터 활용.",
+    "data_completeness_range": "75~95%",
+    "target_company_count": 1000,
+    "avg_auroc": 0.9866,
+    "avg_ks": 0.9737,
+    "avg_ap": 0.7279,
+    "n_folds": 11,
+    "top_features": [
+      "lawsuit_amount_억",
+      "tax_lien_amount_억",
+      "icr_pct_rank",
+      "electricity_usage_idx",
+      "trade_balance_change_pct",
+      "tax_arrears_months",
+      "lawsuit_count_12m",
+      "social_insurance_dropout_flag",
+      "audit_opinion_qualified_flag",
+      "sales_growth_pct"
+    ],
+    "notes": "대기업은 공시 의무가 명확하여 데이터 완성도가 높습니다. 채권시장 신호(credit_spread_bps, bond_yield_bps)와 거시경제 국면 변수가 예측력에 가장 크게 기여합니다.",
+    "is_poc_model": false
+  },
+  "t2": {
+    "tier": "T2",
+    "tier_label": "T2 — 중소·중견기업",
+    "firm_size": [
+      "중소기업",
+      "중견기업"
+    ],
+    "description": "중소기업·중견기업 전용 EWS 모델. 여신 한도 활용률·대금 결제 패턴·보증/담보 데이터 활용.",
+    "data_completeness_range": "45~75%",
+    "target_company_count": 44815,
+    "avg_auroc": 0.9998,
+    "avg_ks": 0.9935,
+    "avg_ap": 0.9977,
+    "n_folds": 12,
+    "top_features": [
+      "tax_lien_amount_억",
+      "payroll_amount_pct",
+      "supplier_hhi",
+      "social_insurance_dropout_flag",
+      "tax_arrears_months",
+      "lawsuit_amount_억",
+      "lawsuit_count_12m",
+      "industry_cd",
+      "audit_opinion_qualified_flag",
+      "trade_balance_change_pct"
+    ],
+    "notes": "중소·중견기업은 한도 활용률과 결제 계좌 입출금 패턴이 부실 선행지표로서 가장 효과적입니다. 코베넌트 위반 이력도 중요한 예측 신호로 작동합니다.",
+    "is_poc_model": false
+  },
+  "t3": {
+    "tier": "T3",
+    "tier_label": "T3 — 소기업",
+    "firm_size": [
+      "소기업"
+    ],
+    "description": "소기업 전용 EWS 모델. 결제 계좌 행동·보증 네트워크·단순 재무비율 위주의 경량 모델.",
+    "data_completeness_range": "15~50%",
+    "target_company_count": 13989,
+    "avg_auroc": 0.9997,
+    "avg_ks": 0.9905,
+    "avg_ap": 0.9957,
+    "n_folds": 12,
+    "top_features": [
+      "tax_lien_amount_억",
+      "payroll_amount_pct",
+      "supplier_hhi",
+      "lawsuit_amount_억",
+      "social_insurance_dropout_flag",
+      "lawsuit_count_12m",
+      "tax_arrears_months",
+      "industry_cd",
+      "trade_balance_change_pct",
+      "news_sentiment_score"
+    ],
+    "notes": "소기업은 재무제표 신뢰도가 낮아 결제 계좌 행동 데이터 (inflow_outflow_ratio, avg_deposit_balance)의 예측 기여도가 높습니다. 결측이 많아 Champion 대비 AUROC가 낮으며, 임계값 최적화가 중요합니다.",
+    "is_poc_model": false
+  }
+}

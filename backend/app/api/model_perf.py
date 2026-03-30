@@ -3,6 +3,7 @@
 fold_metrics.csv 결과 + 검증용 데이터 기반 성능 지표
 """
 import csv
+import json
 import pickle
 import subprocess
 import sys
@@ -19,35 +20,54 @@ router = APIRouter(prefix="/api/model-perf", tags=["ModelPerf"])
 _BASE = Path(__file__).parent.parent.parent.parent
 _CSV_PATH = _BASE / "ml" / "results" / "fold_metrics.csv"
 _MODEL_DIR = _BASE / "ml" / "models"
+_META_JSON = _MODEL_DIR / "tier_models_meta.json"
 
 ADMIN_PASSWORD = "1111"
 
 
+def _load_tier_meta_json() -> dict:
+    """tier_models_meta.json 로드 (pkl 없을 때 fallback)"""
+    if _META_JSON.exists():
+        try:
+            return json.loads(_META_JSON.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {}
+
+
 def _load_tier_model_meta(tier_key: str) -> dict | None:
-    """Tier 모델 pkl 메타데이터 로드 (모델 객체 제외)"""
+    """Tier 모델 메타데이터 로드: pkl 우선, 없으면 JSON fallback"""
     pkl_path = _MODEL_DIR / f"lgbm_{tier_key}.pkl"
-    if not pkl_path.exists():
-        return None
-    with open(pkl_path, "rb") as f:
-        art = pickle.load(f)
-    # 모델 객체는 제외하고 메타데이터만 반환
-    return {
-        "tier": art.get("tier"),
-        "tier_label": art.get("tier_label"),
-        "firm_size": art.get("firm_size", []),
-        "description": art.get("description", ""),
-        "data_completeness_range": art.get("data_completeness_range", ""),
-        "target_company_count": art.get("target_company_count", 0),
-        "avg_auroc": art.get("avg_auroc", 0.0),
-        "avg_ks": art.get("avg_ks", 0.0),
-        "avg_ap": art.get("avg_ap", 0.0),
-        "n_folds": art.get("n_folds", 0),
-        "top_features": art.get("top_features", []),
-        "notes": art.get("notes", ""),
-        "is_poc_model": art.get("is_poc_model", False),
-        "model_file": f"lgbm_{tier_key}.pkl",
-        "file_exists": pkl_path.exists(),
-    }
+    if pkl_path.exists():
+        try:
+            with open(pkl_path, "rb") as f:
+                art = pickle.load(f)
+            return {
+                "tier": art.get("tier"),
+                "tier_label": art.get("tier_label"),
+                "firm_size": art.get("firm_size", []),
+                "description": art.get("description", ""),
+                "data_completeness_range": art.get("data_completeness_range", ""),
+                "target_company_count": art.get("target_company_count", 0),
+                "avg_auroc": art.get("avg_auroc", 0.0),
+                "avg_ks": art.get("avg_ks", 0.0),
+                "avg_ap": art.get("avg_ap", 0.0),
+                "n_folds": art.get("n_folds", 0),
+                "top_features": art.get("top_features", []),
+                "notes": art.get("notes", ""),
+                "is_poc_model": art.get("is_poc_model", False),
+                "model_file": f"lgbm_{tier_key}.pkl",
+                "file_exists": True,
+            }
+        except Exception:
+            pass
+
+    # pkl 없거나 로드 실패 → JSON 메타데이터 fallback
+    meta_json = _load_tier_meta_json()
+    if tier_key in meta_json:
+        m = meta_json[tier_key]
+        return {**m, "model_file": f"lgbm_{tier_key}.pkl", "file_exists": False}
+    return None
 
 
 def _load_fold_metrics():
