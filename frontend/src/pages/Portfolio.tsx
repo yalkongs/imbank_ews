@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, StatCard, DonutChart, GroupedBarChart, COLORS } from '../components';
 import { portfolioApi } from '../utils/api';
-import { formatEok } from '../utils/format';
+import { formatEok, formatNumber } from '../utils/format';
 import { PieChart, TrendingUp } from 'lucide-react';
 
 export default function Portfolio() {
@@ -149,7 +149,7 @@ export default function Portfolio() {
               {(concentration?.items || []).map((item: any, i: number) => (
                 <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium">{item.industry_cd}</td>
-                  <td className="px-4 py-3 font-mono text-right">{item.amount_억.toFixed(1)}</td>
+                  <td className="px-4 py-3 font-mono text-right">{formatNumber(item.amount_억, 1)}</td>
                   <td className="px-4 py-3 font-mono text-right">{item.share_pct.toFixed(1)}%</td>
                   <td className="px-4 py-3">
                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden w-full">

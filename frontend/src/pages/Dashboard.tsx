@@ -47,11 +47,17 @@ export default function Dashboard() {
         return;
       }
 
-      if (summaryR.status === 'fulfilled') setSummary(summaryR.value.data);
-      if (trendR.status === 'fulfilled') setGradeTrend(trendR.value.data || []);
-      if (alertsR.status === 'fulfilled') setAlerts(alertsR.value.data || []);
-      if (industryR.status === 'fulfilled') setIndustryBreakdown(industryR.value.data || []);
-      if (regionR.status === 'fulfilled') setRegionBreakdown(regionR.value.data || []);
+      // Array.isArray 체크: 백엔드 SPA fallback으로 HTML이 오는 경우 방어
+      if (summaryR.status === 'fulfilled' && typeof summaryR.value.data === 'object' && summaryR.value.data !== null)
+        setSummary(summaryR.value.data);
+      if (trendR.status === 'fulfilled' && Array.isArray(trendR.value.data))
+        setGradeTrend(trendR.value.data);
+      if (alertsR.status === 'fulfilled' && Array.isArray(alertsR.value.data))
+        setAlerts(alertsR.value.data);
+      if (industryR.status === 'fulfilled' && Array.isArray(industryR.value.data))
+        setIndustryBreakdown(industryR.value.data);
+      if (regionR.status === 'fulfilled' && Array.isArray(regionR.value.data))
+        setRegionBreakdown(regionR.value.data);
 
       setInitializing(false);
     } catch (error) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, TrendingDown, CheckCircle2, AlertTriangle, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { rmApi, ewsActionApi, companyApi, ewsApi } from '../utils/api';
+import { formatEok, formatNumber } from '../utils/format';
 import { LineChart, Line, XAxis as RXAxis, YAxis as RYAxis, CartesianGrid as RGrid, Tooltip as RTooltip, ResponsiveContainer as RRC } from 'recharts';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar,
@@ -268,9 +269,9 @@ export default function RMPortfolio() {
             <div className="flex-1 grid grid-cols-4 gap-4">
               {[
                 { label: '관리 기업', value: summary.total_companies, icon: <Users size={16} className="text-blue-500" /> },
-                { label: '총 여신', value: `${summary.total_exposure_억.toFixed(1)}억`, icon: <BarChart2 size={16} className="text-purple-500" /> },
+                { label: '총 여신', value: formatEok(summary.total_exposure_억), icon: <BarChart2 size={16} className="text-purple-500" /> },
                 { label: '미완료 액션', value: summary.open_actions, icon: <AlertTriangle size={16} className="text-yellow-500" /> },
-                { label: 'ECL 충당금', value: `${summary.ecl_amount_억.toFixed(1)}억`, icon: <TrendingDown size={16} className="text-red-500" /> },
+                { label: 'ECL 충당금', value: formatEok(summary.ecl_amount_억), icon: <TrendingDown size={16} className="text-red-500" /> },
               ].map(s => (
                 <div key={s.label} className="bg-gray-50 rounded-xl p-3 flex items-center gap-2">
                   {s.icon}
@@ -344,7 +345,7 @@ export default function RMPortfolio() {
                       ) : '-'}
                     </td>
                     <td className="px-4 py-3 text-gray-700">{c.ews_score ?? '-'}</td>
-                    <td className="px-4 py-3 text-gray-900">{c.total_outstanding_억.toFixed(1)}</td>
+                    <td className="px-4 py-3 text-gray-900">{formatNumber(c.total_outstanding_억, 1)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { concentrationApi } from '../utils/api';
+import { formatNumber } from '../utils/format';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -39,7 +40,7 @@ function ProgressBar({ item }: { item: ConcentrationItem }) {
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-medium text-gray-800">{item.label}</span>
         <span className="text-xs text-gray-500">
-          {item.exposure_억.toFixed(1)}억 / {item.exposure_pct.toFixed(1)}% (한도: {item.limit_pct.toFixed(1)}%)
+          {formatNumber(item.exposure_억, 1)}억 / {item.exposure_pct.toFixed(1)}% (한도: {item.limit_pct.toFixed(1)}%)
         </span>
       </div>
       <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden">
@@ -108,7 +109,7 @@ export default function ConcentrationLimit() {
             </div>
           )}
           <div className="ml-auto text-sm text-gray-500 flex items-center">
-            총 여신: <span className="font-bold text-gray-900 ml-1">{data.total_exposure_억.toFixed(1)}억</span>
+            총 여신: <span className="font-bold text-gray-900 ml-1">{formatNumber(data.total_exposure_억, 1)}억</span>
           </div>
         </div>
       )}

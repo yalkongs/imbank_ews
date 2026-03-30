@@ -879,9 +879,9 @@ def build_demo_db(rng):
 
         n_fac = int(rng.integers(1, 4))
         committed_pool = {
-            "대기업": (300, 3000), "중견기업": (50, 600),
-            "중소기업": (10, 120), "소기업":   (1, 25),
-        }.get(firm_size, (10, 120))
+            "대기업": (60, 600), "중견기업": (10, 110),
+            "중소기업": (2, 20),  "소기업":   (0.3, 4.5),
+        }.get(firm_size, (2, 20))
         util_factor = 0.9 if scenario == "DEFAULT" else rng.uniform(0.3, 0.8)
 
         for _ in range(n_fac):
@@ -890,7 +890,7 @@ def build_demo_db(rng):
             committed = round(float(rng.uniform(*committed_pool)), 1)
             outstanding = round(committed * util_factor * float(rng.uniform(0.5, 1.0)), 1)
             rate      = round(float(rng.uniform(3.5, 9.5)), 2)
-            mat_ym    = ym_add(YM_END, int(rng.integers(6, 36)))
+            mat_ym    = ym_add(YM_END, int(rng.integers(1, 36)))
             col_type  = COLLATERAL_TYPES_FAC[rng.integers(0, len(COLLATERAL_TYPES_FAC))]
             facility_rows.append((fid, bid, ftype, committed, outstanding, rate, mat_ym, col_type))
 

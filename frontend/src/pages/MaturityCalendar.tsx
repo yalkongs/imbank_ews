@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { maturityApi } from '../utils/api';
+import { formatNumber } from '../utils/format';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -35,9 +36,9 @@ export default function MaturityCalendar() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      maturityApi.getSummary(202512),
-      maturityApi.getCalendar(202512),
-      maturityApi.getHeatmap(202512),
+      maturityApi.getSummary(),
+      maturityApi.getCalendar(),
+      maturityApi.getHeatmap(),
     ]).then(([s, c, h]) => {
       setSummary(s.data);
       setCalendar(c.data);
@@ -62,8 +63,8 @@ export default function MaturityCalendar() {
           ].map(s => (
             <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
               <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-              <p className="text-2xl font-bold text-gray-900">{s.cnt}건</p>
-              <p className="text-sm text-gray-500 mt-1">{s.amt?.toFixed(1)}억원</p>
+              <p className="text-2xl font-bold text-gray-900">{(s.cnt ?? 0).toLocaleString()}건</p>
+              <p className="text-sm text-gray-500 mt-1">{formatNumber(s.amt ?? 0, 1)}억원</p>
             </div>
           ))}
         </div>
@@ -111,7 +112,7 @@ export default function MaturityCalendar() {
                     ) : '-'}
                   </td>
                   <td className="px-4 py-3 text-gray-700">{r.facility_type}</td>
-                  <td className="px-4 py-3 text-gray-900 font-medium">{r.outstanding_amount_억?.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-gray-900 font-medium">{formatNumber(r.outstanding_amount_억 ?? 0, 1)}</td>
                   <td className="px-4 py-3 text-gray-700">{r.maturity_ym}</td>
                   <td className="px-4 py-3 text-gray-600">{r.rm_name || r.rm_id || '-'}</td>
                 </tr>

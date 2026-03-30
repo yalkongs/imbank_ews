@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { monthlyReportApi } from '../utils/api';
+import { formatEok } from '../utils/format';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
@@ -75,12 +76,12 @@ export default function MonthlyReport() {
               <h2 className="text-base font-semibold text-gray-700 mb-3">이달의 EWS 현황</h2>
               <div className="grid grid-cols-6 gap-3 mb-6">
                 {[
-                  { label: '전체 기업', value: summary.total_companies, color: 'text-gray-900' },
-                  { label: 'A등급', value: summary.grade_a_cnt, color: 'text-green-600' },
-                  { label: 'B등급', value: summary.grade_b_cnt, color: 'text-yellow-500' },
-                  { label: 'C등급', value: summary.grade_c_cnt, color: 'text-orange-500' },
-                  { label: 'D등급', value: summary.grade_d_cnt, color: 'text-red-600' },
-                  { label: '경보 노출액', value: `${summary.alert_exposure_억?.toFixed(1)}억`, color: 'text-red-600' },
+                  { label: '전체 기업', value: (summary.total_companies ?? 0).toLocaleString(), color: 'text-gray-900' },
+                  { label: 'A등급', value: (summary.grade_a_cnt ?? 0).toLocaleString(), color: 'text-green-600' },
+                  { label: 'B등급', value: (summary.grade_b_cnt ?? 0).toLocaleString(), color: 'text-yellow-500' },
+                  { label: 'C등급', value: (summary.grade_c_cnt ?? 0).toLocaleString(), color: 'text-orange-500' },
+                  { label: 'D등급', value: (summary.grade_d_cnt ?? 0).toLocaleString(), color: 'text-red-600' },
+                  { label: '경보 노출액', value: formatEok(summary.alert_exposure_억 ?? 0), color: 'text-red-600' },
                 ].map(s => (
                   <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">{s.label}</p>

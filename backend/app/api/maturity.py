@@ -19,15 +19,33 @@ def _ym_add(ym: int, months: int) -> int:
     return y * 100 + m
 
 
+def _ym_sub(ym: int, months: int) -> int:
+    y, m = divmod(ym, 100)
+    m -= months
+    while m <= 0:
+        m += 12
+        y -= 1
+    return y * 100 + m
+
+
+def _get_ref_ym(db: Session, requested: Optional[int]) -> int:
+    """ref_ym이 없으면 demo_monthly_signal의 최신 분석월 사용"""
+    if requested is not None:
+        return requested
+    row = db.execute(text("SELECT MAX(ym) FROM demo_monthly_signal")).fetchone()
+    return row[0] if row and row[0] else 202512
+
+
 @router.get("/calendar")
-def get_calendar(ref_ym: int = Query(202512), db: Session = Depends(get_db)):
+def get_calendar(ref_ym: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """만기 도래 여신 (30/60/90/180일 버킷)"""
+    ref = _get_ref_ym(db, ref_ym)
     buckets = {30: 1, 60: 2, 90: 3, 180: 6}
     result = {}
 
     for days, months in buckets.items():
-        ym_from = _ym_add(ref_ym, 1)
-        ym_to   = _ym_add(ref_ym, months)
+        ym_from = _ym_add(ref, 1)
+        ym_to   = _ym_add(ref, months)
 
         rows = db.execute(text("""
             SELECT f.borrower_id, c.company_name, f.facility_type,
@@ -63,10 +81,11 @@ def get_calendar(ref_ym: int = Query(202512), db: Session = Depends(get_db)):
 
 
 @router.get("/heatmap")
-def get_heatmap(ref_ym: int = Query(202512), db: Session = Depends(get_db)):
+def get_heatmap(ref_ym: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """향후 12개월 만기 분포"""
-    ym_from = _ym_add(ref_ym, 1)
-    ym_to   = _ym_add(ref_ym, 12)
+    ref = _get_ref_ym(db, ref_ym)
+    ym_from = _ym_add(ref, 1)
+    ym_to   = _ym_add(ref, 12)
 
     rows = db.execute(text("""
         SELECT maturity_ym, COUNT(*) as cnt, SUM(outstanding_amount_억) as amt
@@ -87,12 +106,13 @@ def get_heatmap(ref_ym: int = Query(202512), db: Session = Depends(get_db)):
 
 
 @router.get("/summary")
-def get_summary(ref_ym: int = Query(202512), db: Session = Depends(get_db)):
+def get_summary(ref_ym: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """만기 도래 요약 수치"""
+    ref = _get_ref_ym(db, ref_ym)
     result = {}
     for days, months in [(30, 1), (60, 2), (90, 3)]:
-        ym_from = _ym_add(ref_ym, 1)
-        ym_to   = _ym_add(ref_ym, months)
+        ym_from = _ym_add(ref, 1)
+        ym_to   = _ym_add(ref, months)
         row = db.execute(text("""
             SELECT COUNT(*), SUM(outstanding_amount_억)
             FROM demo_facility

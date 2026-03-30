@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, StatCard, DonutChart, COLORS } from '../components';
 import Table from '../components/Table';
 import { workoutApi } from '../utils/api';
-import { formatEok, formatPercent, formatYm, getStatusColorClass } from '../utils/format';
+import { formatEok, formatNumber, formatPercent, formatYm, getStatusColorClass } from '../utils/format';
 import { Briefcase } from 'lucide-react';
 
 export default function Workout() {
@@ -81,7 +81,7 @@ export default function Workout() {
     { key: 'workout_start_ym', header: '시작월', width: '80px', render: (v: number) => formatYm(v) },
     {
       key: 'original_balance_억', header: '원금(억)', width: '80px', align: 'right' as const,
-      render: (v: number) => <span className="font-mono">{v?.toFixed(1)}</span>
+      render: (v: number) => <span className="font-mono">{v != null ? formatNumber(v, 1) : '-'}</span>
     },
     {
       key: 'recovery_rate', header: '회수율', width: '80px', align: 'right' as const,
@@ -167,7 +167,7 @@ export default function Workout() {
                       {formatPercent(t.avg_recovery_rate * 100)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-right">{t.total_balance_억?.toFixed(1)}</td>
+                  <td className="px-4 py-3 font-mono text-right">{formatNumber(t.total_balance_억 ?? 0, 1)}</td>
                 </tr>
               ))}
             </tbody>
@@ -181,19 +181,19 @@ export default function Workout() {
           <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
               <p className="text-xs text-green-600 font-medium">낙관적 총 회수(억)</p>
-              <p className="text-lg font-bold text-green-700 font-mono">{scenarioSummary.total_optimistic?.toFixed(1)}</p>
+              <p className="text-lg font-bold text-green-700 font-mono">{formatNumber(scenarioSummary.total_optimistic ?? 0, 1)}</p>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
               <p className="text-xs text-blue-600 font-medium">기본 총 회수(억)</p>
-              <p className="text-lg font-bold text-blue-700 font-mono">{scenarioSummary.total_base?.toFixed(1)}</p>
+              <p className="text-lg font-bold text-blue-700 font-mono">{formatNumber(scenarioSummary.total_base ?? 0, 1)}</p>
             </div>
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
               <p className="text-xs text-red-600 font-medium">비관적 총 회수(억)</p>
-              <p className="text-lg font-bold text-red-700 font-mono">{scenarioSummary.total_pessimistic?.toFixed(1)}</p>
+              <p className="text-lg font-bold text-red-700 font-mono">{formatNumber(scenarioSummary.total_pessimistic ?? 0, 1)}</p>
             </div>
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center">
               <p className="text-xs text-purple-600 font-medium">가중평균 기대(억)</p>
-              <p className="text-lg font-bold text-purple-700 font-mono">{scenarioSummary.total_weighted_recovery?.toFixed(1)}</p>
+              <p className="text-lg font-bold text-purple-700 font-mono">{formatNumber(scenarioSummary.total_weighted_recovery ?? 0, 1)}</p>
             </div>
           </div>
 
@@ -215,11 +215,11 @@ export default function Workout() {
                   <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">{m.method}</td>
                     <td className="px-4 py-3 font-mono text-right">{m.count}</td>
-                    <td className="px-4 py-3 font-mono text-right text-green-700 font-semibold">{m.optimistic_recovery?.toFixed(1)}</td>
-                    <td className="px-4 py-3 font-mono text-right text-blue-700 font-semibold">{m.base_recovery?.toFixed(1)}</td>
-                    <td className="px-4 py-3 font-mono text-right text-red-700 font-semibold">{m.pessimistic_recovery?.toFixed(1)}</td>
-                    <td className="px-4 py-3 font-mono text-right font-semibold">{m.weighted_expected?.toFixed(1)}</td>
-                    <td className="px-4 py-3 font-mono text-right text-gray-600">{m.avg_npv?.toFixed(1)}</td>
+                    <td className="px-4 py-3 font-mono text-right text-green-700 font-semibold">{formatNumber(m.optimistic_recovery ?? 0, 1)}</td>
+                    <td className="px-4 py-3 font-mono text-right text-blue-700 font-semibold">{formatNumber(m.base_recovery ?? 0, 1)}</td>
+                    <td className="px-4 py-3 font-mono text-right text-red-700 font-semibold">{formatNumber(m.pessimistic_recovery ?? 0, 1)}</td>
+                    <td className="px-4 py-3 font-mono text-right font-semibold">{formatNumber(m.weighted_expected ?? 0, 1)}</td>
+                    <td className="px-4 py-3 font-mono text-right text-gray-600">{formatNumber(m.avg_npv ?? 0, 1)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -294,7 +294,7 @@ export default function Workout() {
                                     <div className="space-y-1 text-sm">
                                       <div className="flex justify-between">
                                         <span className="text-gray-500">회수금액</span>
-                                        <span className="font-mono font-semibold">{s.recovery_amount_억?.toFixed(1)}억</span>
+                                        <span className="font-mono font-semibold">{formatEok(s.recovery_amount_억 ?? 0)}</span>
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-gray-500">기간</span>
@@ -302,7 +302,7 @@ export default function Workout() {
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-gray-500">NPV</span>
-                                        <span className="font-mono">{s.npv_억?.toFixed(1)}억</span>
+                                        <span className="font-mono">{formatEok(s.npv_억 ?? 0)}</span>
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-gray-500">IRR</span>
@@ -316,7 +316,7 @@ export default function Workout() {
                             <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
                               <span className="text-sm text-gray-600">가중평균 기대 회수액</span>
                               <span className="text-base font-bold text-purple-700 font-mono">
-                                {workoutScenarios.weighted_expected_recovery_억?.toFixed(2)}억
+                                {formatEok(workoutScenarios.weighted_expected_recovery_억 ?? 0, 2)}
                               </span>
                             </div>
                           </div>
