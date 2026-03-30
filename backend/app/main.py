@@ -50,12 +50,14 @@ _DB_PATH = Path(__file__).parent.parent.parent / "demo" / "demo.db"
 
 
 def _db_ready() -> bool:
-    """demo.db가 존재하고 핵심 테이블이 있는지 확인"""
+    """demo.db가 존재하고 핵심 테이블이 모두 있는지 확인 (후반 생성 테이블 포함)"""
     if not _DB_PATH.exists():
         return False
     try:
         conn = sqlite3.connect(str(_DB_PATH))
-        conn.execute("SELECT 1 FROM demo_company LIMIT 1")
+        # 초반 테이블 + 후반 생성 테이블(demo_monthly_report, demo_stress_scenario)까지 확인
+        for tbl in ("demo_company", "demo_monthly_report", "demo_stress_scenario"):
+            conn.execute(f"SELECT 1 FROM {tbl} LIMIT 1")
         conn.close()
         return True
     except Exception:

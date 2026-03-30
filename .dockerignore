@@ -3,8 +3,9 @@
 *.db-shm
 *.db-wal
 
-# ML 모델 바이너리
+# ML 모델 바이너리 (ml/models/ 는 Railway 배포 필수이므로 예외)
 *.pkl
+!ml/models/*.pkl
 
 # 빌드 캐시
 data_pipeline/

@@ -1,5 +1,6 @@
 """
 EWS 대시보드 API
+routes: summary, grade-trend, ews-alerts, industry-breakdown, region-breakdown
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
