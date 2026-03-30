@@ -106,22 +106,33 @@ function Badge({ label, color }: { label: string; color: string }) {
 export default function SystemReport() {
   const [modalOpen, setModalOpen] = useState(false);
 
+  const handlePrint = () => {
+    const printArea = document.getElementById('report-print-area');
+    if (!printArea) return;
+    const styles = Array.from(document.styleSheets)
+      .map(sheet => {
+        try { return Array.from(sheet.cssRules).map(r => r.cssText).join('\n'); }
+        catch { return ''; }
+      })
+      .join('\n');
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) return;
+    printWindow.document.write(
+      `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+      `<title>iM뱅크 EWS 종합 보고서</title>` +
+      `<style>${styles}` +
+      `body{background:white;padding:24px;font-size:11pt;}` +
+      `h2{page-break-after:avoid;}` +
+      `table{page-break-inside:avoid;}` +
+      `</style></head><body>${printArea.innerHTML}</body></html>`
+    );
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
+
   return (
     <>
-      {/* 인쇄 전용 CSS — 모달 내 #report-print-area 만 출력 */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          #report-print-area, #report-print-area * { visibility: visible; }
-          #report-print-area {
-            position: absolute; left: 0; top: 0;
-            width: 100%; padding: 24px; font-size: 11pt;
-          }
-          .print-break { page-break-before: always; }
-          h2 { page-break-after: avoid; }
-          table { page-break-inside: avoid; }
-        }
-      `}</style>
 
       {/* ── 진입 화면 ── */}
       <div className="flex flex-col items-center justify-center py-24 px-4">
@@ -161,7 +172,7 @@ export default function SystemReport() {
               <span className="font-semibold text-gray-800 text-sm">iM뱅크 EWS 종합 보고서</span>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={handlePrint}
                   className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
                 >
                   <Printer size={14} />
