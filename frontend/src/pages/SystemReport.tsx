@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, ChevronDown, ChevronRight } from 'lucide-react';
+import { Printer, ChevronDown, ChevronRight, X } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
    공통 스타일 상수
@@ -104,47 +104,86 @@ function Badge({ label, color }: { label: string; color: string }) {
    메인 보고서 컴포넌트
 ═══════════════════════════════════════════════════════════ */
 export default function SystemReport() {
-  const handlePrint = () => window.print();
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
-      {/* 인쇄 전용 CSS */}
+      {/* 인쇄 전용 CSS — 모달 내 #report-print-area 만 출력 */}
       <style>{`
         @media print {
-          body { font-size: 11pt; }
-          .no-print { display: none !important; }
+          body * { visibility: hidden; }
+          #report-print-area, #report-print-area * { visibility: visible; }
+          #report-print-area {
+            position: absolute; left: 0; top: 0;
+            width: 100%; padding: 24px; font-size: 11pt;
+          }
           .print-break { page-break-before: always; }
           h2 { page-break-after: avoid; }
           table { page-break-inside: avoid; }
         }
       `}</style>
 
+      {/* ── 진입 화면 ── */}
+      <div className="flex flex-col items-center justify-center py-24 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">iM뱅크 기업여신 EWS</h1>
+          <p className="text-xl text-blue-700 font-semibold mb-1">시스템 종합 보고서</p>
+          <p className="text-sm text-gray-500">기준일: 2026년 3월 &nbsp;|&nbsp; 개발: 황원철</p>
+        </div>
+        <div className="grid grid-cols-3 gap-4 mb-10 text-center">
+          {[
+            { label: '모니터링 기업', value: '20,000개' },
+            { label: '데이터 기간', value: '36개월' },
+            { label: '구현 페이지', value: '18개' },
+          ].map(s => (
+            <div key={s.label} className="bg-blue-50 border border-blue-100 rounded-xl px-8 py-4">
+              <p className="text-2xl font-bold text-blue-700">{s.value}</p>
+              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm shadow-md"
+        >
+          <Printer size={18} />
+          보고서 열기 / PDF 저장
+        </button>
+        <p className="text-xs text-gray-400 mt-3">보고서를 열면 전체 내용 열람 및 PDF 저장이 가능합니다</p>
+      </div>
+
+      {/* ── 모달 ── */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center overflow-y-auto py-6 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl my-4 relative">
+            {/* 모달 상단 고정 헤더 */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between rounded-t-2xl z-10">
+              <span className="font-semibold text-gray-800 text-sm">iM뱅크 EWS 종합 보고서</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+                >
+                  <Printer size={14} />
+                  PDF로 저장
+                </button>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            {/* 보고서 내용 */}
+            <div id="report-print-area" className="px-8 py-6">
       <div className="max-w-5xl mx-auto pb-16">
 
-        {/* ── 헤더 ── */}
-        <div className="flex items-start justify-between mb-6 no-print">
-          <div>
-            <h1 className={H1}>iM뱅크 기업여신 EWS 시스템 종합 보고서</h1>
-            <p className="text-sm text-gray-500">
-              기준일: 2026년 3월
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">개발: 황원철</p>
-          </div>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 shrink-0"
-          >
-            <Printer size={16} />
-            PDF로 저장
-          </button>
-        </div>
-
-        {/* 인쇄용 타이틀 */}
-        <div className="hidden print:block mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">iM뱅크 기업여신 EWS 시스템 종합 보고서</h1>
-          <p className="text-sm text-gray-500">기준일: 2026년 3월</p>
-          <p className="text-xs text-gray-400 mt-0.5">개발: 황원철</p>
-          <hr className="mt-4 border-gray-300" />
+        {/* ── 헤더 (모달/인쇄 공용) ── */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">iM뱅크 기업여신 EWS 시스템 종합 보고서</h1>
+          <p className="text-sm text-gray-500">기준일: 2026년 3월 &nbsp;|&nbsp; 개발: 황원철</p>
+          <hr className="mt-4 border-gray-200" />
         </div>
 
         {/* ────────────────────────────────── */}
@@ -185,6 +224,146 @@ export default function SystemReport() {
             ['모델 성능', 'AUROC, KS 통계, 혼동행렬, 선행시간', '모델 검증 리포트'],
           ]}
         />
+
+        {/* ────────────────────────────────────────── */}
+        {/* 1-B. 프로젝트 가치 및 전략적 활용 방안   */}
+        {/* ────────────────────────────────────────── */}
+        <h2 className={H2}>1-B. 프로젝트 가치 및 전략적 활용 방안</h2>
+
+        <p className={P}>
+          본 EWS 시스템은 단순한 리스크 모니터링 도구를 넘어, iM뱅크의 기업여신 전략을 데이터 중심으로
+          전환하는 핵심 인프라입니다. 아래에 이 시스템이 창출하는 가치와 활용 방안을 정리합니다.
+        </p>
+
+        <Collapsible title="1-B.1 재무적 가치 — 부실 손실 선제 방어" defaultOpen>
+          <InfoCard title="EWS 조기 개입의 손실 감소 효과" color="green">
+            <p className={P}>
+              일반적으로 부실 기업에 대해 6개월 이상 선행하여 경보를 발령하고 구조조정에 착수하면,
+              무담보 회수율은 평균 <strong>15~20%p</strong> 향상됩니다 (금감원 EWS 우수 은행 사례 기준).
+              iM뱅크 기업여신 잔액 약 34.7조 원 중 예상 부도 노출액(C/D 등급 비율 기준)을 고려하면,
+              조기 개입 1%p 회수율 향상만으로도 <strong>연간 수백억 원</strong> 규모의 손실 절감이 가능합니다.
+            </p>
+          </InfoCard>
+          <ReportTable
+            headers={['개입 시점', '평균 회수율', '핵심 수단']}
+            rows={[
+              ['부도 발생 이후 (현재)', '40~55%', '경·공매, 보증 청구, 법적 회수'],
+              ['EWS 경보 후 3개월 내', '55~65%', '자율 구조조정, 담보 보강, 만기 조정'],
+              ['EWS 경보 후 6개월 내', '60~70%', '워크아웃 사전 계획, 업종 모니터링 강화'],
+            ]}
+          />
+        </Collapsible>
+
+        <Collapsible title="1-B.2 감독·규제 대응 가치">
+          <p className={P}>
+            금융감독원은 「기업신용위험 상시평가 모범규준」(2022)에서 분기 1회 이상 상시평가 및
+            조기경보 체계 구축을 요구합니다. 본 시스템은 해당 요건을 월 단위로 초과 충족하며,
+            다음의 감독 리스크를 직접 완화합니다.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <InfoCard title="현재 감독 리스크" color="red">
+              <ul className={UL}>
+                <li>상시평가 미흡 시 경영유의사항 지정 위험</li>
+                <li>IFRS9 Stage 분류 근거 미비 → 충당금 소명 부담</li>
+                <li>바젤 III IRB 적용 심사 시 EWS 체계 미구축 감점</li>
+                <li>금리 상승기 포트폴리오 집중도 지적 위험</li>
+              </ul>
+            </InfoCard>
+            <InfoCard title="EWS 구축 후 대응력" color="green">
+              <ul className={UL}>
+                <li>월별 경보 이력 → 감독 검사 시 즉시 근거 제출</li>
+                <li>ECL 충당금: Stage 분류 로직 코드화·감사 추적 가능</li>
+                <li>PD 모델 재학습 이력 → IRB 모델 관리 요건 충족</li>
+                <li>집중도 한도 모니터링 화면으로 규제 준수 자동화</li>
+              </ul>
+            </InfoCard>
+          </div>
+        </Collapsible>
+
+        <Collapsible title="1-B.3 영업·전략적 가치">
+          <div className="grid grid-cols-1 gap-3">
+            <InfoCard title="RM(여신 담당자) 생산성 향상" color="blue">
+              <p className={P}>
+                기존에는 RM이 개별 기업 재무제표를 수기로 점검했으나, EWS 도입 후 경보 기업만 선별하여
+                집중 관리합니다. 20,000개 기업 중 C/D 경보 기업(평균 약 1,200개, 6%)에만 집중하면
+                RM 1인당 실질 모니터링 부담이 <strong>약 94% 감소</strong>합니다.
+              </p>
+            </InfoCard>
+            <InfoCard title="중소기업 여신 확대 기반 구축" color="purple">
+              <p className={P}>
+                iM뱅크 기업여신의 86%는 중소·소기업입니다. 데이터 기반 신용 관리 체계가 갖춰지면
+                신용정보가 부족한 중소기업에 대해서도 <strong>거래행동(Transaction Data) 기반 평가</strong>가
+                가능해져, 기존 재무제표 위주 심사에서 벗어나 여신 저변을 확대할 수 있습니다.
+              </p>
+            </InfoCard>
+            <InfoCard title="지역 밀착 데이터 활용" color="yellow">
+              <p className={P}>
+                대구·경북 특화 업종(섬유·자동차부품·건설·농림) 데이터가 충분히 축적되면,
+                해당 업종의 경기 선행 지표(수출 통관, 전력 사용량, 부동산 지가)를 EWS 입력에 직접 반영할 수 있습니다.
+                수도권 중심 빅데이터와 차별화되는 <strong>지역 특화 신용 인텔리전스</strong>가 구축됩니다.
+              </p>
+            </InfoCard>
+          </div>
+        </Collapsible>
+
+        <Collapsible title="1-B.4 시스템 확장 및 이전 가능성">
+          <ReportTable
+            headers={['확장 방향', '내용', '예상 가치']}
+            rows={[
+              ['타 금융기관 이전', '동일 코드베이스로 DB·파라미터만 교체 시 타 지방은행·저축은행 도입 가능', '라이선스 수익 또는 공동 개발 비용 절감'],
+              ['개인사업자 여신 확장', '현재 법인 기업 중심 → 개인사업자 신용 데이터로 확장 시 iM뱅크 소상공인 여신 관리 포괄', '여신 포트폴리오 전체 커버리지'],
+              ['실시간 모니터링', '배치 처리(월별) → 스트리밍 처리(일별·거래별)로 전환 시 카드 연체 조기 탐지 가능', '연체 손실 추가 감소'],
+              ['GenAI 연동', 'EWS 경보 발생 시 LLM이 자동으로 RM 보고서 초안 생성', 'RM 보고서 작성 시간 80% 절감'],
+            ]}
+          />
+        </Collapsible>
+
+        <Collapsible title="1-B.5 POC에서 실운영으로의 전환 로드맵">
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              {
+                phase: '단계 1 — POC 검증', period: '현재~3개월',
+                color: 'blue',
+                items: [
+                  '✓ 합성 데이터 기반 EWS 데모 완성',
+                  '✓ 전 기능 화면 구현 (18개 페이지)',
+                  '현업 담당자 시연 및 피드백 수집',
+                  '실데이터 연계 범위 확정',
+                ]
+              },
+              {
+                phase: '단계 2 — 파일럿 운영', period: '3~9개월',
+                color: 'green',
+                items: [
+                  '실데이터 100개 기업 연계 파일럿',
+                  '합성 데이터 모델 → 실데이터 재학습',
+                  '기존 여신 관리 시스템과 병행 운영',
+                  '임계값 캘리브레이션 (실제 부도율 기준)',
+                ]
+              },
+              {
+                phase: '단계 3 — 전면 운영', period: '9~18개월',
+                color: 'purple',
+                items: [
+                  '전체 기업여신 포트폴리오 적용',
+                  'PostgreSQL + 인증 체계 구축',
+                  '감독기관 보고 자동화 연동',
+                  'RM 교육 및 운영 프로세스 정착',
+                ]
+              },
+            ].map(p => (
+              <InfoCard key={p.phase} title={`${p.phase} (${p.period})`} color={p.color as any}>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  {p.items.map(item => (
+                    <li key={item} className={item.startsWith('✓') ? 'text-green-700 font-medium' : ''}>
+                      {item.startsWith('✓') ? item : `• ${item}`}
+                    </li>
+                  ))}
+                </ul>
+              </InfoCard>
+            ))}
+          </div>
+        </Collapsible>
 
         {/* ────────────────────────────────── */}
         {/* 2. 데이터 생성 방법론              */}
@@ -1126,12 +1305,15 @@ export default function SystemReport() {
         <div className="mt-10 pt-4 border-t border-gray-200 text-xs text-gray-400">
           <div className="flex justify-between mb-1">
             <span>iM뱅크 기업여신 EWS 시스템 v2.0.0 | POC 환경 | 기준일 2026-03</span>
-            <span className="no-print">이 페이지를 인쇄하면 PDF로 저장할 수 있습니다</span>
           </div>
           <p className="text-gray-400">개발: 황원철 (Hwang Weoncheol) — 설계·구현·데이터 생성 파이프라인·ML 모델링·프론트엔드·백엔드 전 영역</p>
         </div>
 
       </div>
+            </div>{/* /report-print-area */}
+          </div>{/* /모달 컨테이너 */}
+        </div>
+      )}{/* /modalOpen */}
     </>
   );
 }
