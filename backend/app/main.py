@@ -110,7 +110,7 @@ app.include_router(ews_advanced.router)
 @app.get("/health")
 def health_check():
     """헬스체크 엔드포인트"""
-    return {"status": "healthy"}
+    return {"status": "healthy", "version": "0fa265e"}
 
 
 # 프론트엔드 빌드 파일 서빙
